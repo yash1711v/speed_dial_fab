@@ -67,7 +67,12 @@ class SpeedDialFabWidget extends StatefulWidget {
     this.primaryElevation = 5.0,
     this.secondaryElevation = 10.0,
   });
+  final bool expandDownwards;
 
+  SpeedDialFabWidget({
+    // ... (existing parameters)
+    this.expandDownwards = true,
+  });
   @override
   State createState() => SpeedDialFabWidgetState();
 }
@@ -111,100 +116,108 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    returnColumn(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(widget.secondaryIconsList.length, (int index) {
-        Widget secondaryFAB = Container(
-          height: 70.0,
-          width: 56.0,
-          alignment: FractionalOffset.topCenter,
-          child: ScaleTransition(
-            scale: CurvedAnimation(
-              parent: _controller,
-              curve: Interval(
-                0.0,
-                1.0 - index / widget.secondaryIconsList.length / 2.0,
-                curve: Curves.easeOut,
+      children: [
+        for (int index = 0; index < widget.secondaryIconsList.length; index++)
+          buildSecondaryFab(index),
+        buildPrimaryFab(),
+      ],
+    );
+  }
+  Widget buildSecondaryFab(int index) {
+    return Container(
+      height: 70.0,
+      width: 56.0,
+      alignment: FractionalOffset(
+        widget.expandDownwards ? 0.5 : 0.0,
+        widget.expandDownwards ? 0.0 : 1.0,
+      ),
+      child: ScaleTransition(
+        scale: CurvedAnimation(
+          parent: _controller,
+          curve: Interval(
+            0.0,
+            1.0 - index / widget.secondaryIconsList.length / 2.0,
+            curve: Curves.easeOut,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            FloatingActionButton(
+              elevation: widget.secondaryElevation,
+              tooltip: widget.secondaryIconsText![index],
+              heroTag: null,
+              mini: true,
+              backgroundColor: widget.secondaryBackgroundColor,
+              child: Icon(
+                widget.secondaryIconsList[index],
+                color: widget.secondaryForegroundColor,
               ),
+              onPressed: widget.secondaryIconsOnPress[index] as void Function(),
             ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                FloatingActionButton(
-                  elevation: widget.secondaryElevation,
-                  tooltip: widget.secondaryIconsText![index],
-                  heroTag: null,
-                  mini: true,
-                  backgroundColor: widget.secondaryBackgroundColor,
-                  child: Icon(
-                    widget.secondaryIconsList[index],
-                    color: widget.secondaryForegroundColor,
-                  ),
-                  onPressed:
-                      widget.secondaryIconsOnPress[index] as void Function(),
-                ),
-                Positioned(
-                  right: 51.0,
-                  top: 5,
-                  child: Material(
-                    clipBehavior: Clip.antiAlias,
-                    borderRadius: BorderRadius.circular(10),
-                    elevation: 0,
-                    shadowColor: widget.secondaryForegroundColor,
-                    color: widget.secondaryBackgroundColor,
-                    child: Padding(
-                      padding: EdgeInsets.all(9),
-                      child: Text(
-                        widget.secondaryIconsText?[index] ?? "",
-                        style: TextStyle(
-                          color: widget.secondaryForegroundColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
+            Positioned(
+              right: 51.0,
+              top: 5,
+              child: Material(
+                clipBehavior: Clip.antiAlias,
+                borderRadius: BorderRadius.circular(10),
+                elevation: 0,
+                shadowColor: widget.secondaryForegroundColor,
+                color: widget.secondaryBackgroundColor,
+                child: Padding(
+                  padding: EdgeInsets.all(9),
+                  child: Text(
+                    widget.secondaryIconsText?[index] ?? "",
+                    style: TextStyle(
+                      color: widget.secondaryForegroundColor,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        );
-
-        return secondaryFAB;
-      }).toList()
-        ..add(
-          FloatingActionButton(
-            elevation: widget.primaryElevation,
-            clipBehavior: Clip.antiAlias,
-            backgroundColor: widget.primaryBackgroundColor,
-            heroTag: null,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (BuildContext context, Widget? child) {
-                return Transform(
-                  transform: Matrix4.rotationZ(
-                    _controller.value * (widget.rotateAngle),
-                  ),
-                  alignment: FractionalOffset.center,
-                  child: Icon(
-                    _controller.isDismissed
-                        ? widget.primaryIconExpand
-                        : widget.primaryIconCollapse,
-                    color: widget.primaryForegroundColor,
-                  ),
-                );
-              },
-            ),
-            onPressed: () {
-              if (_controller.isDismissed) {
-                _controller.forward();
-              } else {
-                _controller.reverse();
-              }
-            },
-          ),
+          ],
         ),
+      ),
     );
   }
+
+  Widget buildPrimaryFab() {
+    return FloatingActionButton(
+      elevation: widget.primaryElevation,
+      clipBehavior: Clip.antiAlias,
+      backgroundColor: widget.primaryBackgroundColor,
+      heroTag: null,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (BuildContext context, Widget? child) {
+          return Transform(
+            transform: Matrix4.rotationZ(
+              _controller.value * (widget.rotateAngle),
+            ),
+            alignment: FractionalOffset.center,
+            child: Icon(
+              _controller.isDismissed
+                  ? widget.primaryIconExpand
+                  : widget.primaryIconCollapse,
+              color: widget.primaryForegroundColor,
+            ),
+          );
+        },
+      ),
+      onPressed: () {
+        if (_controller.isDismissed) {
+          _controller.forward();
+        } else {
+          _controller.reverse();
+        }
+      },
+    );
+  }
+
+
 }
