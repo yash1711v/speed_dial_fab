@@ -53,6 +53,7 @@ class SpeedDialFabWidget extends StatefulWidget {
   /// Should have the same size of [secondaryIconsText] and [secondaryIconsList]
   final List<Function> secondaryIconsOnPress;
 
+  final bool expandDownwards;
   SpeedDialFabWidget({
     this.secondaryBackgroundColor = Colors.white,
     this.secondaryForegroundColor = Colors.black,
@@ -66,13 +67,9 @@ class SpeedDialFabWidget extends StatefulWidget {
     this.secondaryIconsText,
     this.primaryElevation = 5.0,
     this.secondaryElevation = 10.0,
+    required this.expandDownwards,
   });
-  final bool expandDownwards;
-
-  SpeedDialFabWidget({
-    // ... (existing parameters)
-    this.expandDownwards = true,
-  });
+  
   @override
   State createState() => SpeedDialFabWidgetState();
 }
@@ -116,7 +113,7 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
 
   @override
   Widget build(BuildContext context) {
-    returnColumn(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int index = 0; index < widget.secondaryIconsList.length; index++)
@@ -130,8 +127,8 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
       height: 70.0,
       width: 56.0,
       alignment: FractionalOffset(
-        widget.expandDownwards ? 0.5 : 0.0,
-        widget.expandDownwards ? 0.0 : 1.0,
+        widget.expandDownwards ? 2 : 0.0,
+        widget.expandDownwards ? 1.0 : 0.0,
       ),
       child: ScaleTransition(
         scale: CurvedAnimation(
@@ -159,7 +156,7 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
             ),
             Positioned(
               right: 51.0,
-              top: 5,
+              bottom: 25,
               child: Material(
                 clipBehavior: Clip.antiAlias,
                 borderRadius: BorderRadius.circular(10),
