@@ -54,12 +54,31 @@ class SpeedDialFabWidget extends StatefulWidget {
   final List<Function> secondaryIconsOnPress;
 
   final bool expandDownwards;
+  /// [primaryShape] Changes the shape of the primary FAB button.
+  /// The default value is [CircleBorder()]
+  final ShapeBorder primaryShape;
+
+  /// [secondaryShape] Changes the shape of the secondary FAB buttons.
+  /// The default value is [CircleBorder()]
+  final ShapeBorder secondaryShape;
+  final Curve animationType;
+
+  /// [animationDuration] Changes the duration of the animation for the FAB buttons.
+  /// The default value is [const Duration(milliseconds: 500)]
+  final Duration animationDuration;
+
+  /// [enableBouncyAnimation] Enables or disables the bouncy animation for FAB buttons.
+  /// The default value is [false]
+  final bool enableBouncyAnimation;
+
   SpeedDialFabWidget({
     this.secondaryBackgroundColor = Colors.white,
     this.secondaryForegroundColor = Colors.black,
     this.primaryBackgroundColor = Colors.white,
     this.primaryForegroundColor = Colors.black,
     this.primaryIconCollapse = Icons.expand_less,
+    this.primaryShape = const CircleBorder(),
+    this.secondaryShape = const CircleBorder(),
     this.primaryIconExpand = Icons.expand_less,
     this.rotateAngle = math.pi,
     required this.secondaryIconsList,
@@ -67,9 +86,12 @@ class SpeedDialFabWidget extends StatefulWidget {
     this.secondaryIconsText,
     this.primaryElevation = 5.0,
     this.secondaryElevation = 10.0,
+  this.animationType= Curves.easeOut,
+    this.enableBouncyAnimation = false,
+    required this.animationDuration,
     required this.expandDownwards,
   });
-  
+
   @override
   State createState() => SpeedDialFabWidgetState();
 }
@@ -82,7 +104,7 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
   void initState() {
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: widget.animationDuration,
     );
 
     if (widget.secondaryIconsList.length !=
@@ -111,14 +133,17 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
     _controller.reverse();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (int index = 0; index < widget.secondaryIconsList.length; index++)
-          buildSecondaryFab(index),
+        // for (int index = 0; index < widget.secondaryIconsList.length; index++)
+        //   widget.expandDownwards==false?buildSecondaryFab(index):null,
         buildPrimaryFab(),
+        for (int index = 0; index < widget.secondaryIconsList.length; index++)
+          buildSecondaryFab(index)
       ],
     );
   }
@@ -127,27 +152,29 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
       height: 70.0,
       width: 56.0,
       alignment: FractionalOffset(
-        widget.expandDownwards ? 2 : 0.0,
-        widget.expandDownwards ? 1.0 : 0.0,
+        widget.expandDownwards ? 0.5 : 0.0,
+        widget.expandDownwards ? 0.0 : 1.0,
       ),
       child: ScaleTransition(
-        scale: CurvedAnimation(
+        scale: widget.enableBouncyAnimation
+            ? CurvedAnimation(
           parent: _controller,
-          curve: Interval(
-            0.0,
-            1.0 - index / widget.secondaryIconsList.length / 2.0,
-            curve: Curves.easeOut,
-          ),
-        ),
+          curve: widget.animationType,
+        )
+            : Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(_controller),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             FloatingActionButton(
               elevation: widget.secondaryElevation,
-              tooltip: widget.secondaryIconsText![index],
+              // tooltip: widget.secondaryIconsText?[index].isEmpty?"":widget.secondaryIconsText![index],
               heroTag: null,
               mini: true,
               backgroundColor: widget.secondaryBackgroundColor,
+              shape: widget.secondaryShape,
               child: Icon(
                 widget.secondaryIconsList[index],
                 color: widget.secondaryForegroundColor,
@@ -156,7 +183,7 @@ class SpeedDialFabWidgetState extends State<SpeedDialFabWidget>
             ),
             Positioned(
               right: 51.0,
-              bottom: 25,
+              top: 5,
               child: Material(
                 clipBehavior: Clip.antiAlias,
                 borderRadius: BorderRadius.circular(10),
